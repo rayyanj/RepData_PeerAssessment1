@@ -5,10 +5,7 @@ output:
     keep_md: true
 ---
 
-```{r setoptions, echo = FALSE}
-library(knitr)
-opts_chunk$set(echo = TRUE, results = "markup")
-```
+
 
 ## Steps to reproduce HTML file
 
@@ -62,8 +59,8 @@ columns: steps, date and interval. Parse "steps" and "interval" as integer
 columns and date as character column. It will be converted to proper date
 in the next section (see Preprocessing data).
 
-```{r loadingAndPreprocessingData, message=FALSE}
 
+```r
 zipFilename <- "activity.zip"
 rawCsvFile <- "activity.csv"
 fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
@@ -103,8 +100,19 @@ rawActivityData <- read.csv(rawCsvFile,
 ```
 
 Sample rows from the raw activity data:
-```{r sampleRawData}
+
+```r
 head(rawActivityData)
+```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
 ```
 
 ### Preprocessing data 
@@ -128,7 +136,8 @@ variable, the labels will be formatted nicely to indicate time of the day
 The following method ```installPackageIfNeeded``` installs package, such
 as ```chron``` if it has not already been installed.
 
-```{r processingData, message=FALSE}
+
+```r
 # 
 # Installs package if not already installed. If the package is already
 # installed, then this is a no-op.
@@ -138,7 +147,7 @@ as ```chron``` if it has not already been installed.
 installPackageIfNeeded <- function(packageName) {
         if (!(packageName %in% rownames(installed.packages()))) {
                 message(paste("Package", packageName, "was not found. Will attempt to install."))
-                install.packages(packageName, repos="http://cran.rstudio.com/")
+                install.packages(packageName)
                 message(paste("Package", packageName, "installed."))
         } else {
                  message(paste("Package", packageName, "was found. Nothing to install."))
@@ -168,7 +177,6 @@ intervalsFormatted <- paste0(substring(intervalsFormatted,1,2),":",
 interval <- times(intervalsFormatted)
 
 tidyData <- data.frame(day, interval, steps = rawActivityData$steps)
-
 ```
 
 The resulting processed dataset has three columns:
@@ -185,8 +193,19 @@ starting at 6:30 AM and ending in 6:35 AM. Note: 24 hour format is used, so
 if the measurement for this day and time is missing.
 
 Here are sample rows from the processed data:
-```{r sampleProcessedData}
+
+```r
 head(tidyData)
+```
+
+```
+##          day interval steps
+## 1 2012-10-01 00:00:00    NA
+## 2 2012-10-01 00:05:00    NA
+## 3 2012-10-01 00:10:00    NA
+## 4 2012-10-01 00:15:00    NA
+## 5 2012-10-01 00:20:00    NA
+## 6 2012-10-01 00:25:00    NA
 ```
 
 
@@ -209,8 +228,8 @@ reason, I remove the row before the aggregation.
 ```dplyr`` package is very handy for this. Below is the code that can
 achieve this.
 
-```{r meanNumberOfStepsPerDayMissingDataIgnored, message=FALSE}
 
+```r
 installPackageIfNeeded("dplyr")
 library(dplyr)
 
@@ -224,8 +243,22 @@ numberOfStepsPerDay = tidyData %>%
 ```
 
 Here are sample rows from ```numberOfStepsPerDay```:
-```{r sampleNumberOfStepsPerDayMissingDataIgnored}
+
+```r
 head(numberOfStepsPerDay)
+```
+
+```
+## Source: local data frame [6 x 2]
+## 
+##          day totalSteps
+##       (time)      (int)
+## 1 2012-10-02        126
+## 2 2012-10-03      11352
+## 3 2012-10-04      12116
+## 4 2012-10-05      13294
+## 5 2012-10-06      15420
+## 6 2012-10-07      11015
 ```
 
 ### Histogram of total steps taken each day
@@ -233,31 +266,42 @@ head(numberOfStepsPerDay)
 Below is a histogram showing the frequency of total number of steps per day in
 the dataset after ignoring missing rows.
 
-```{r histogramStepsPerDayMissingDataIgnored}
 
+```r
 histogramStepsPerDayMissingDataIgnored <- hist(numberOfStepsPerDay$totalSteps,
      main = "Histogram of total steps per day, after ignoring missing data",
      xlab = "Total steps per day")
-
 ```
+
+![plot of chunk histogramStepsPerDayMissingDataIgnored](figure/histogramStepsPerDayMissingDataIgnored-1.png) 
 
 ### Mean and median of total steps taken each day
 
-```{r MeanStepsPerDayIgnoringMissingData}
+
+```r
 meanTotalNumberOfStepsPerDay <- mean(numberOfStepsPerDay$totalSteps)
 meanTotalNumberOfStepsPerDay
 ```
 
-The mean of the total steps per day, with missing data ignored, is
-`r sprintf("%.2f", meanTotalNumberOfStepsPerDay)`
+```
+## [1] 10766.19
+```
 
-```{r MedianStepsPerDayIgnoringMissingData}
+The mean of the total steps per day, with missing data ignored, is
+10766.19
+
+
+```r
 medianTotalNumberOfStepsPerDay <- median(numberOfStepsPerDay$totalSteps)
 medianTotalNumberOfStepsPerDay
 ```
 
+```
+## [1] 10765
+```
+
 The median of the total steps per day, with missing data ignored, is
-`r sprintf("%.2f", medianTotalNumberOfStepsPerDay)`
+10765.00
 
 ## What is the average daily activity pattern?
 
@@ -266,7 +310,8 @@ The median of the total steps per day, with missing data ignored, is
 In order to compute average daily activity pattern, we aggregate along the
 interval, computing the mean of steps for each 5 minute interval.
 
-```{r dailyActivity, message=FALSE}
+
+```r
 installPackageIfNeeded("lattice")
 library(lattice)
 
@@ -278,8 +323,22 @@ averageNumberOfStepsPerInterval = tidyData %>%
 
 Here are sample rows showing average number of steps per interval for the first
 few intervals:
-```{r sampleDailyActivity}
+
+```r
 head(averageNumberOfStepsPerInterval)
+```
+
+```
+## Source: local data frame [6 x 2]
+## 
+##   interval averageSteps
+##     (tims)        (dbl)
+## 1 00:00:00    1.7169811
+## 2 00:05:00    0.3396226
+## 3 00:10:00    0.1320755
+## 4 00:15:00    0.1509434
+## 5 00:20:00    0.0754717
+## 6 00:25:00    2.0943396
 ```
 
 ### Time series plot of average steps per time interval
@@ -287,7 +346,8 @@ head(averageNumberOfStepsPerInterval)
 Below, I used the lattice plotting system to make a time series plot of average
 steps per time interval.
 
-```{r dailyActivityPlot}
+
+```r
 intervalWithMostSteps <- averageNumberOfStepsPerInterval[which.max(averageNumberOfStepsPerInterval$averageSteps),]
 
 xyplot(averageSteps ~ interval, data = averageNumberOfStepsPerInterval,
@@ -303,35 +363,50 @@ xyplot(averageSteps ~ interval, data = averageNumberOfStepsPerInterval,
        )
 ```
 
+![plot of chunk dailyActivityPlot](figure/dailyActivityPlot-1.png) 
+
 ### 5 minute interval with the most steps
 
 The table below shows the maximum average steps in a 5 minute interval and
 the interval at which this maximum is achieved:
 
-```{r intervalWithMostSteps}
+
+```r
 intervalWithMostSteps <- averageNumberOfStepsPerInterval[which.max(averageNumberOfStepsPerInterval$averageSteps),]
 
 intervalWithMostSteps
 ```
 
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval averageSteps
+##     (tims)        (dbl)
+## 1 08:35:00     206.1698
+```
+
 From the table, we can see that:
 
-- The maximum average number of steps in a 5 minute interval is `r 
-sprintf("%.2f", intervalWithMostSteps$averageSteps)`.
+- The maximum average number of steps in a 5 minute interval is 206.17.
 
-- The interval with most number of steps is the 5 minute interval starting at `r as.character(intervalWithMostSteps$interval)` (and ending 5 minutes later at `r as.character(intervalWithMostSteps$interval + 1/(24*12))`).
+- The interval with most number of steps is the 5 minute interval starting at 08:35:00 (and ending 5 minutes later at 08:40:00).
 
 ## Imputing missing values
 
 ### Calculating number of rows with missing steps
 
-```{r numberOfRowsWithMissingData}
+
+```r
 indicesOfMissingData <- which(is.na(tidyData$steps))
 numberOfRowsWithMissingData <- length(indicesOfMissingData)
 numberOfRowsWithMissingData
 ```
 
-The number of rows with missing steps is `r numberOfRowsWithMissingData`.
+```
+## [1] 2304
+```
+
+The number of rows with missing steps is 2304.
 
 ### Strategy to fill in missing values
 
@@ -345,16 +420,29 @@ In order to come up with a strategy to fill in missing values:
 
 Let us explore which dates have missing values:
 
-```{r}
+
+```r
 daysWithMissingValues <- unique(tidyData[indicesOfMissingData,]$day)
 numberOfDaysWithMissingValues <- length(daysWithMissingValues)
 
 numberOfDaysWithMissingValues
+```
+
+```
+## [1] 8
+```
+
+```r
 # We use format method here to omit timezone information
 format(daysWithMissingValues)
 ```
 
-From above, we can see that there are `r numberOfDaysWithMissingValues` dates with
+```
+## [1] "2012-10-01" "2012-10-08" "2012-11-01" "2012-11-04" "2012-11-09"
+## [6] "2012-11-10" "2012-11-14" "2012-11-30"
+```
+
+From above, we can see that there are 8 dates with
 missing values.
 
 Let us explore which days of the week (i.e. Mondays, Tuesdays, etc.) have
@@ -362,8 +450,15 @@ missing data. We can accomplish this by using `weekdays()` method as shown
 in the table below showing number of dates with missing value that fall
 on a particular week day:
 
-```{r}
+
+```r
 table(weekdays(daysWithMissingValues))
+```
+
+```
+## 
+##    Friday    Monday  Saturday    Sunday  Thursday Wednesday 
+##         2         2         1         1         1         1
 ```
 
 The table shows that missing days are pretty distributed through out the week,
@@ -373,7 +468,8 @@ in the time period of the study.
 Let us explore further to see if the dates that have some intervals with
 missing values have any other intervals with steps available.
 
-```{r}
+
+```r
 numberOfIntervalsWithDataInDaysThatHaveMissingData <-
 sum(
         # intervals that fall in days that have missing data
@@ -385,10 +481,14 @@ sum(
 numberOfIntervalsWithDataInDaysThatHaveMissingData
 ```
 
-The number of intervals with data available that lie in days that have missing
-data is `r numberOfIntervalsWithDataInDaysThatHaveMissingData`. That means:
+```
+## [1] 0
+```
 
-- No steps is provided for any interval in the `r numberOfDaysWithMissingValues` 
+The number of intervals with data available that lie in days that have missing
+data is 0. That means:
+
+- No steps is provided for any interval in the 8 
 days that have missing data.
 
 - For any day that has an interval with missing data in the raw dataset,
@@ -419,12 +519,18 @@ To implement the strategy I described above:
 the day of the week the day corresponds to, e.g. "Monday", "Tuesday", etc. using
 the ```weekdays()``` method.
 
-```{r dayOfWeek}
 
+```r
 # Set locale to en-US so that weekdays() returns days in English:
 # Monday, Tuesday, ..., Saturday, Sunday
 Sys.setlocale("LC_ALL", "en_US")
+```
 
+```
+## [1] "en_US/en_US/en_US/C/en_US/en_US.UTF-8"
+```
+
+```r
 tidyData <- tidyData %>% mutate(weekday = weekdays(day))
 tidyData$weekday <- factor(tidyData$weekday)
 ```
@@ -432,7 +538,8 @@ tidyData$weekday <- factor(tidyData$weekday)
 - I create a secondary dataset that has averages of mean steps taken in a given
 weekday and a given time interval.
 
-```{r averagePerDayOfWeekAndInterval}
+
+```r
 averageNumberOfStepsPerIntervalPerWeekday <- tidyData %>%
         filter(!is.na(steps)) %>%
         group_by(interval,weekday) %>%
@@ -441,7 +548,8 @@ averageNumberOfStepsPerIntervalPerWeekday <- tidyData %>%
 
 - I merge the two datasets on weekday and the time interval:
 
-```{r mergingWithAverages}
+
+```r
 tidyDataFilled <- tidyData %>% 
         merge(averageNumberOfStepsPerIntervalPerWeekday, 
               by = c("weekday", "interval")) %>%
@@ -451,20 +559,33 @@ tidyDataFilled <- tidyData %>%
 - For the rows that have missing data, fill in the missing data with the 
 corresponding averages for that weekday and time interval:
 
-```{r fillingInMissingData}
+
+```r
 tidyDataFilled[indicesOfMissingData,]$steps = tidyDataFilled[indicesOfMissingData,]$averageStep
 ```
 
 If we inspect the first few columns of the filled in dataset, we can see
 that we should no longer see data that is missing.
 
-```{r sampleMissingDataFilledIn}
+
+```r
 head(tidyDataFilled)
+```
+
+```
+##   weekday interval        day    steps averageSteps
+## 1  Monday 00:00:00 2012-10-01 1.428571     1.428571
+## 2  Monday 00:05:00 2012-10-01 0.000000     0.000000
+## 3  Monday 00:10:00 2012-10-01 0.000000     0.000000
+## 4  Monday 00:15:00 2012-10-01 0.000000     0.000000
+## 5  Monday 00:20:00 2012-10-01 0.000000     0.000000
+## 6  Monday 00:25:00 2012-10-01 5.000000     5.000000
 ```
 
 ### Histogram of total number of steps taken each day, after imputing missing values
 
-```{r histogramStepsPerDayMissingDataImputed}
+
+```r
 numberOfStepsPerDayFilled = tidyDataFilled %>%
         group_by(day) %>%
         summarize(totalSteps = sum(steps))
@@ -477,31 +598,43 @@ histogramStepsPerDayMissingDataImputed <- hist(numberOfStepsPerDayFilled$totalSt
      xlab = "Total steps per day")
 ```
 
+![plot of chunk histogramStepsPerDayMissingDataImputed](figure/histogramStepsPerDayMissingDataImputed-1.png) 
+
 ### Mean and median of total number of steps taken each day, after imputing missing values
 
-```{r}
+
+```r
 meanTotalNumberOfStepsPerDayFilled <- mean(numberOfStepsPerDayFilled$totalSteps)
 meanTotalNumberOfStepsPerDayFilled
 ```
 
-The mean of total number of steps taken each day after filling in missing values
-is `r sprintf("%.2f", meanTotalNumberOfStepsPerDayFilled)`.
+```
+## [1] 10821.21
+```
 
-```{r}
+The mean of total number of steps taken each day after filling in missing values
+is 10821.21.
+
+
+```r
 medianTotalNumberOfStepsPerDayFilled <- median(numberOfStepsPerDayFilled$totalSteps)
 medianTotalNumberOfStepsPerDayFilled
 ```
 
+```
+## [1] 11015
+```
+
 The median of total number of steps taken each day after imputing missing values
-is `r format(medianTotalNumberOfStepsPerDayFilled, nsmall=2)`.
+is 11015.00.
 
 ### Comparing ignoring (removing) vs imputing missing values
 
 The following table compares the counts in the histograms of steps per day 
 when issing data is ignored vs imputed:
 
-```{r}
 
+```r
 nBreaks <- length(histogramBreaks)
 histogramBins <- paste(histogramBreaks[1:nBreaks-1],"-", histogramBreaks[2:nBreaks])
 
@@ -512,7 +645,15 @@ histogramStepsPerDay <- data.frame(
 )
 
 histogramStepsPerDay
+```
 
+```
+##            bins stepsPerDayCountNAIgnored stepsPerDayCountNAImputed
+## 1      0 - 5000                         5                         5
+## 2  5000 - 10000                        12                        15
+## 3 10000 - 15000                        28                        33
+## 4 15000 - 20000                         6                         6
+## 5 20000 - 25000                         2                         2
 ```
 
 Comparing the histograms above with missing data ignored or imputed, we notice:
@@ -530,8 +671,8 @@ in the resulting dataset after imputation.
 - The following table shows comparison of the means and median of total steps in
 a day, between the dataset with missing value ignored vs missing value imputed.
 
-```{r}
 
+```r
 statsMissingValuesIgnored <- c(meanTotalNumberOfStepsPerDay, 
                                medianTotalNumberOfStepsPerDay)
 statsMissingValuesImputed <- c(meanTotalNumberOfStepsPerDayFilled,
@@ -550,10 +691,16 @@ comparison <- data.frame(
 comparison
 ```
 
+```
+##        na.ignored na.filledin diff.percent
+## mean     10766.19    10821.21        0.51%
+## median   10765.00    11015.00        2.32%
+```
+
 - We notice that imputing missing values have caused the mean to 
 increase, but only slightly by around 
-`r comparison$diff.percent[1]`. The median increased slightly 
-by around `r comparison$diff.percent[2]`.
+0.51%. The median increased slightly 
+by around 2.32%.
 
 The reason we don't see a significant change here before and after imputing
 missing values is that the way missing values appear in the raw data is in
@@ -573,7 +720,8 @@ two levels:  “weekday” and “weekend” indicating whether a given date is
 a weekday or weekend day. Saturday are Sundays are marked as weekend days.
 All other days are weekdays.
 
-```{r}
+
+```r
 weekendIndices <- tidyDataFilled$weekday == "Saturday" |
         tidyDataFilled$weekday == "Sunday"
 
@@ -585,7 +733,8 @@ tidyDataFilled$dayType <- factor(tidyDataFilled$dayType)
 - Aggregate the data based on interval and day type to effectively create
 two time series: one for weekdays and one for weekends.
 
-```{r}
+
+```r
 averageStepsPerIntervalPerDayType <- tidyDataFilled %>%
         group_by(interval, dayType) %>%
         summarize(averageSteps = mean(steps))
@@ -593,7 +742,8 @@ averageStepsPerIntervalPerDayType <- tidyDataFilled %>%
 
 - Plot the two series on a panel plot.
 
-```{r dailyActivityInWeekdaysVsWeekends}
+
+```r
 with(
         data = averageStepsPerIntervalPerDayType,
         xyplot(averageSteps~interval|dayType, 
@@ -610,6 +760,8 @@ with(
                )
         )
 ```
+
+![plot of chunk dailyActivityInWeekdaysVsWeekends](figure/dailyActivityInWeekdaysVsWeekends-1.png) 
 
 Comparing the two plots reveal significant differences between daily
 activity pattern between weekends and weekdays. More specifically:
